@@ -1,0 +1,86 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Search</title>
+    <style type="text/css">
+        body {
+            min-width: 500px;
+        }
+    </style>
+    <script src="{% static 'app_dj/js/jquery.min.js' %}"></script>
+    <script src="{% static 'app_dj/js/csrf_protection.js'%}"></script>
+    <script>
+        function log(m) {
+            d = document.getElementById("log");
+            d.innerHTML = m + "<br/>" + d.innerHTML;
+        }
+
+        function clear() {
+            document.getElementById("log").reset();
+        }
+
+        $(document).ready(function () {
+
+            $("#search").click(function(event) {
+                event.preventDefault();
+
+                var index = $("#index").val();
+                var type = $("#type").val();
+                var field = $("#field").val();
+                var from = $("#from").val();
+                var to = $("#to").val();
+                var size = $("#size").val();
+
+                $.ajax({
+                    url: '/elastic/query/',
+                    type: 'POST',
+                    data: {index: index, type: type, field: field, from: from, to: to, size: size},
+                    "beforeSend": function(xhr, settings) {
+                        console.log("Before Send");
+                        $.ajaxSettings.beforeSend(xhr, settings);
+                    },
+                    success: function(result) {
+                        log(JSON.stringify(result));
+                    },
+                    error: function() {
+                        log("Failed!");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    Welcome!
+    <br/>
+    <br/>
+    <div>
+        <label for="index">Index:</label>
+        <input type="text" id="index" value="titanic"/>
+
+        <label for="type">Type:</label>
+        <input type="text" id="type" value="passenger"/>
+
+        <label for="field">Field:</label>
+        <input type="text" id="field" value="age"/>
+
+        <label for="from">From:</label>
+        <input type="text" id="from" value="20"/>
+
+        <label for="to">To:</label>
+        <input type="text" id="to" value="30"/>
+
+        <label for="size">Size:</label>
+        <input type="text" id="size" value="10"/>
+
+        <input type="submit" id="search" value="Search"/>
+        {% csrf_token %}
+    </div>
+    <br/>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    <br/>
+    <div id="log"></div>
+</body>
+</html>

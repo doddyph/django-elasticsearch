@@ -80,3 +80,50 @@ def api_elastic_mapping(request):
         mapping.append(json.loads(obj.to_JSON()))
 
     return JsonResponse(mapping, safe=False)
+
+
+def api_elastic_query_range(request):
+    if request.method == 'POST':
+        size = 10
+        if 'size' in request.POST:
+            size = request.POST['size']
+        index = request.POST['index']
+        doc_type = request.POST['type']
+        field = request.POST['field']
+        q_from = request.POST['from']
+        q_to = request.POST['to']
+        # print("index: %s, type: %s, field: %s, from: %s, to: %s, size: %s" % (index, doc_type, field, q_from, q_to, size))
+
+        es = Elasticsearch(hosts=[ES_HOST])
+        res = es.search(index=index, doc_type=doc_type, body={
+            "size": size,
+            "query": {
+                "constant_score": {
+                    "filter": {
+                        "range": {
+                            field: {
+                                "from": q_from,
+                                "to": q_to
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        # res = es.search(index=index, doc_type=doc_type, body={
+        #     "size": size,
+        #     "query": {
+        #         "range": {
+        #             str(field): {
+        #                 "from": str(q_from),
+        #                 "to": str(q_to)
+        #             }
+        #         }
+        #     }
+        # })
+
+        source = []
+        for hit in res['hits']['hits']:
+            source.append(hit["_source"])
+
+        return JsonResponse(source, safe=False)

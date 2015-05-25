@@ -82,34 +82,30 @@ def api_elastic_mapping(request):
     return JsonResponse(mapping, safe=False)
 
 
-def api_elastic_query_range(request):
+def api_elastic_query(request):
     if request.method == 'POST':
-        size = 10
-        if 'size' in request.POST:
-            size = request.POST['size']
         index = request.POST['index']
         doc_type = request.POST['type']
-        field = request.POST['field']
-        q_from = request.POST['from']
-        q_to = request.POST['to']
-        # print("index: %s, type: %s, field: %s, from: %s, to: %s, size: %s" % (index, doc_type, field, q_from, q_to, size))
+        body = request.POST['body']
+        # print("index: %s, type: %s, body: %s" % (index, doc_type, body))
 
         es = Elasticsearch(hosts=[ES_HOST])
-        res = es.search(index=index, doc_type=doc_type, body={
-            "size": size,
-            "query": {
-                "constant_score": {
-                    "filter": {
-                        "range": {
-                            field: {
-                                "from": q_from,
-                                "to": q_to
-                            }
-                        }
-                    }
-                }
-            }
-        })
+        res = es.search(index=index, doc_type=doc_type, body=body)
+        # res = es.search(index=index, doc_type=doc_type, body={
+        #     "size": size,
+        #     "query": {
+        #         "constant_score": {
+        #             "filter": {
+        #                 "range": {
+        #                     field: {
+        #                         "from": q_from,
+        #                         "to": q_to
+        #                     }
+        #                 }
+        #             }
+        #         }
+        #     }
+        # })
         # res = es.search(index=index, doc_type=doc_type, body={
         #     "size": size,
         #     "query": {
